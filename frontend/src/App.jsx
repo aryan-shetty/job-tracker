@@ -1,47 +1,61 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { GoogleOAuthProvider } from "@react-oauth/google"
+import { useAuth } from "./context/AuthContext"
+import { AuthProvider } from "./context/AuthContext"
 import JobForm from "./components/JobForm"
 import JobCard from "./components/JobCard"
 import Dashboard from "./components/Dashboard"
+import Login from "./components/Login"
+import Register from "./components/Register"
+import Profile from "./components/Profile"
 
 const API = "http://localhost:8000"
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
-export default function App() {
+function AppContent() {
+  const { user, loading } = useAuth()
   const [jobs, setJobs] = useState([])
   const [stats, setStats] = useState({})
   const [showForm, setShowForm] = useState(false)
   const [filterStatus, setFilterStatus] = useState("All")
   const [search, setSearch] = useState("")
+  const [showProfile, setShowProfile] = useState(false)
+  const [authMode, setAuthMode] = useState("login")
 
   const fetchJobs = async () => {
-    const res = await axios.get(`${API}/jobs`)
-    setJobs(res.data)
+    try {
+      const res = await axios.get(`${API}/jobs`)
+      setJobs(res.data)
+    } catch {}
   }
 
   const fetchStats = async () => {
-    const res = await axios.get(`${API}/stats`)
-    setStats(res.data)
+    try {
+      const res = await axios.get(`${API}/stats`)
+      setStats(res.data)
+    } catch {}
   }
 
   useEffect(() => {
-    fetchJobs()
-    fetchStats()
-  }, [])
+    if (user) {
+      fetchJobs()
+      fetchStats()
+    }
+  }, [user])
 
-  const handleJobAdded = () => {
-    fetchJobs()
-    fetchStats()
-    setShowForm(false)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    )
   }
 
-  const handleJobDeleted = () => {
-    fetchJobs()
-    fetchStats()
-  }
-
-  const handleJobUpdated = () => {
-    fetchJobs()
-    fetchStats()
+  if (!user) {
+    return authMode === "login"
+      ? <Login onSwitch={() => setAuthMode("register")} />
+      : <Register onSwitch={() => setAuthMode("login")} />
   }
 
   const filteredJobs = jobs.filter(job => {
@@ -60,18 +74,36 @@ export default function App() {
             <h1 className="text-3xl font-bold text-white">🎯 Job Tracker</h1>
             <p className="text-gray-400 mt-1">AI-powered job application tracker</p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-          >
-            {showForm ? "Cancel" : "+ Add Job"}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowProfile(true)}
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
+            >
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt="avatar" className="w-6 h-6 rounded-full" />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">
+                  {user.name?.[0]?.toUpperCase() || "U"}
+                </div>
+              )}
+              <span className="text-sm">{user.name}</span>
+            </button>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
+            >
+              {showForm ? "Cancel" : "+ Add Job"}
+            </button>
+          </div>
         </div>
+
+        {/* Profile Modal */}
+        {showProfile && <Profile onClose={() => setShowProfile(false)} />}
 
         {/* Form */}
         {showForm && (
           <div className="mb-8">
-            <JobForm onJobAdded={handleJobAdded} />
+            <JobForm onJobAdded={() => { fetchJobs(); fetchStats(); setShowForm(false) }} />
           </div>
         )}
 
@@ -113,13 +145,23 @@ export default function App() {
               <JobCard
                 key={job.id}
                 job={job}
-                onDeleted={handleJobDeleted}
-                onUpdated={handleJobUpdated}
+                onDeleted={() => { fetchJobs(); fetchStats() }}
+                onUpdated={() => { fetchJobs(); fetchStats() }}
               />
             ))
           )}
         </div>
       </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </GoogleOAuthProvider>
   )
 }

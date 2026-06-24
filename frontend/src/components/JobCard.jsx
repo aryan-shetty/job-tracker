@@ -1,5 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
+import { useAuth } from "../context/AuthContext"
 
 const API = "http://localhost:8000"
 
@@ -16,6 +17,8 @@ export default function JobCard({ job, onDeleted, onUpdated }) {
   const [scoring, setScoring] = useState(false)
   const [scoreResult, setScoreResult] = useState(null)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const { user } = useAuth()
+  const savedResume = user?.saved_resume_text || null
 
   const skills = job.extracted_skills ? JSON.parse(job.extracted_skills) : []
 
@@ -141,13 +144,13 @@ export default function JobCard({ job, onDeleted, onUpdated }) {
                     }}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-gray-300 text-sm"
                     />
-                    {localStorage.getItem("saved_resume") && (
-                    <button
-                        onClick={() => setResumeText(localStorage.getItem("saved_resume"))}
+                    {savedResume && (
+                      <button
+                        onClick={() => setResumeText(savedResume)}
                         className="text-blue-400 text-sm hover:underline"
-                    >
-                        ↩ Use saved resume
-                    </button>
+                      >
+                        ↩ Use saved resume from profile
+                      </button>
                     )}
                 </div>
                 ) : (
