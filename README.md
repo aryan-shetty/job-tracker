@@ -1,24 +1,27 @@
 # 🎯 AI-Powered Job Application Tracker
 
-A full-stack job application tracker that uses Claude AI to automatically extract required skills from job descriptions and score your resume match percentage.
+A full-stack job application tracker that uses Claude AI to automatically extract required skills from job descriptions, score your resume match, and generate tailored cover letters.
 
 ## 🚀 Features
 
-- Add and track job applications with status (Applied, Interview, Offer, Rejected)
-- Claude AI auto-extracts required skills from job descriptions
-- Upload your resume PDF and get an AI-powered match score with detailed feedback
-- Resume saved locally — upload once, reuse across all applications
-- Dashboard showing application stats by status
-- Search and filter applications by company, title, or status
-- Update application status in real time
+- **User Authentication** — Email/password and Google OAuth login with JWT tokens
+- **Job Tracking** — Add and manage applications with status (Applied, Interview, Offer, Rejected)
+- **AI Skill Extraction** — Claude automatically extracts required skills from job descriptions
+- **Resume Scoring** — Upload your resume PDF and get an AI match score with detailed feedback
+- **Cover Letter Generator** — Generate tailored cover letters with one click, download as PDF
+- **User Profiles** — Save your resume once, reuse across all applications
+- **Dashboard** — Visual stats showing your application pipeline
+- **Search & Filter** — Filter by status, search by company or title
 
 ## 🛠️ Tech Stack
 
 - **Frontend:** React, Vite, Tailwind CSS, Axios
 - **Backend:** FastAPI, Python
 - **Database:** PostgreSQL, SQLAlchemy
+- **Auth:** JWT tokens, Google OAuth 2.0
 - **AI:** Anthropic Claude API (claude-sonnet-4-6)
 - **PDF Parsing:** PyPDF2
+- **PDF Generation:** jsPDF
 
 ## ⚙️ Setup
 
@@ -44,8 +47,12 @@ pip install -r backend/requirements.txt
 ### 3. Environment variables
 Create a `.env` file in the root:
 ```
-ANTHROPIC_API_KEY=your_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key
 DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/job_tracker
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
 ### 4. Create PostgreSQL database
@@ -66,33 +73,47 @@ npm install
 npm run dev
 ```
 
+Create `frontend/.env`:
+```
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 📁 Project Structure
 
-```
 job-tracker/
 ├── backend/
 │   ├── main.py          # FastAPI server + REST endpoints
 │   ├── models.py        # SQLAlchemy database models
 │   ├── database.py      # PostgreSQL connection
 │   ├── ai.py            # Claude API integration
+│   ├── auth.py          # JWT authentication
+│   ├── users.py         # User routes (register, login, profile)
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
 │       ├── App.jsx
+│       ├── main.jsx
+│       ├── context/
+│       │   └── AuthContext.jsx
 │       └── components/
 │           ├── JobForm.jsx
 │           ├── JobCard.jsx
-│           └── Dashboard.jsx
+│           ├── Dashboard.jsx
+│           ├── Login.jsx
+│           ├── Register.jsx
+│           ├── Profile.jsx
+│           └── CoverLetter.jsx
 ├── .env
 └── README.md
-```
 
 ## 🔍 How It Works
 
-1. Add a job application with company, title, status, and job description
-2. Claude automatically extracts required skills from the JD and displays them as tags
-3. Upload your resume PDF once — it's parsed and saved locally for reuse
-4. Click "Score Resume with AI" to get a match percentage and detailed feedback
-5. Update application status as you progress through the hiring process
+1. Register or log in with email/password or Google OAuth
+2. Add a job application with company, title, status, and job description
+3. Claude automatically extracts required skills from the JD and displays them as tags
+4. Upload your resume PDF once — it's parsed and saved to your profile
+5. Click "Score Resume with AI" to get a match percentage and detailed feedback
+6. Click "Generate Cover Letter" to get a tailored cover letter — download as PDF
+7. Update application status as you progress through the hiring process
