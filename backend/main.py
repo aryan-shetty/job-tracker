@@ -132,6 +132,26 @@ async def parse_resume(file: UploadFile = File(...), current_user: User = Depend
     
     return {"text": text.strip()}
 
+class CoverLetterRequest(BaseModel):
+    job_id: int
+    resume_text: Optional[str] = None
+
+@app.post("/jobs/cover-letter")
+def create_cover_letter(data: CoverLetterRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from ai import generate_cover_letter
+    job = db.query(Job).filter(Job.id == data.job_id, Job.user_id == current_user.id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if not job.job_description:
+        raise HTTPException(status_code=400, detail="Job has no description")
+
+    resume_text = data.resume_text or current_user.saved_resume_text
+    if not resume_text:
+        raise HTTPException(status_code=400, detail="No resume found. Please upload your resume in your profile.")
+
+    letter = generate_cover_letter(job.job_description, resume_text, current_user.name or "")
+    return {"cover_letter": letter}
+
 @app.get("/stats")
 def get_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     total = db.query(Job).filter(Job.user_id == current_user.id).count()

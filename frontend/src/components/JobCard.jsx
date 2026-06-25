@@ -1,6 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 import { useAuth } from "../context/AuthContext"
+import CoverLetter from "./CoverLetter"
 
 const API = "http://localhost:8000"
 
@@ -185,6 +186,9 @@ export default function JobCard({ job, onDeleted, onUpdated }) {
               )}
             </div>
           )}
+
+          {/* Cover Letter */}
+          <CoverLetter job={job} />
         </div>
       )}
     </div>

@@ -58,3 +58,34 @@ Resume:
     except Exception as e:
         print(f"Score parsing error: {e}, raw: {response.content[0].text}")
         return {"score": 0, "feedback": "Could not analyze match."}
+    
+def generate_cover_letter(job_description: str, resume_text: str, user_name: str) -> str:
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1500,
+        messages=[
+            {
+                "role": "user",
+                "content": f"""Write a professional, tailored cover letter for this job application.
+
+Guidelines:
+- Address it to the hiring team
+- Keep it to 3-4 paragraphs
+- Opening: express enthusiasm for the specific role and company
+- Middle: highlight 2-3 most relevant experiences from the resume that match the JD
+- Closing: call to action, thank them
+- Sign off with the candidate's name: {user_name}
+- Do NOT use generic filler phrases like "I am writing to express my interest"
+- Sound natural, confident, and specific
+
+Job Description:
+{job_description}
+
+Resume:
+{resume_text}
+
+Write only the cover letter, no extra commentary."""
+            }
+        ]
+    )
+    return response.content[0].text.strip()
