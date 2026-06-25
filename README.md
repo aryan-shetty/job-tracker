@@ -82,6 +82,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 📁 Project Structure
 
+```
 job-tracker/
 ├── backend/
 │   ├── main.py          # FastAPI server + REST endpoints
@@ -107,6 +108,7 @@ job-tracker/
 │           └── CoverLetter.jsx
 ├── .env
 └── README.md
+```
 
 ## 🔍 How It Works
 
